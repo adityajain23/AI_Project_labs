@@ -128,6 +128,7 @@ def breadthFirstSearch(problem):
         currState, path = s.pop()
         if problem.isGoalState(currState):
             return path
+        
         if currState not in visited:
             visited.append(currState)
             successors = problem.getSuccessors(currState)
