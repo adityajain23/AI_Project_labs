@@ -111,7 +111,7 @@ def depthFirstSearch(problem):
                 if successor not in visited:
                     nextPath = path.copy()
                     nextPath.append(action)
-                    s.push((successor, nextPath))
+                    s.push((successor,    nextPath))
 
     util.raiseNotDefined()
 
@@ -181,7 +181,34 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    
+    p = util.PriorityQueue()
+    visited = []
+    s = problem.getStartState()    
+    path = []
+    p.push((s,path,0),0+heuristic(s,problem))
+
+    while not p.isEmpty():
+        cState, cPath, cCost = p.pop()
+        if problem.isGoalState(cState):
+            return cPath
+        if cState not in visited:
+            visited.append(cState)
+            successors = problem.getSuccessors(cState)
+            for nbr in successors:
+                successor, action, cost = nbr
+                if successor not in visited:
+                    newPath = cPath.copy()
+                    newPath.append(action)
+                    p.push((successor,newPath, cCost+cost),cCost+cost+heuristic(successor,problem))
+                else:
+                    nextPath = cPath.copy()
+                    nextPath.append(action)
+                    p.update((successor, nextPath, cCost + cost), cCost + cost+heuristic(successor,problem))
     util.raiseNotDefined()
+                
+
+                
 
 
 # Abbreviations
