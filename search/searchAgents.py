@@ -382,17 +382,35 @@ def cornersHeuristic(state, problem):
 
     "*** YOUR CODE HERE ***"
 
-    hn = 0
-
     (a,b),visitedCorners = state
+
+    h = 0
+
+    nvc = []
+    for i in corners:
+        if i not in visitedCorners:
+            nvc.append(i)
+
+    if len(nvc) == 0:
+        return 0
     
-    for (x,y) in corners:
-        if (x,y) not in visitedCorners:
-            hn = hn + abs(x-a) + abs(y-b)
+    currentNode = (a,b)
+    
+    while len(nvc)!=0:
+        (x,y) = nvc[0]
+        closestCorner = nvc[0]
+        distClosest = abs(x-currentNode[0])+abs(y-currentNode[1])
+        for (x,y) in nvc:
+            distCurrent = abs(x-currentNode[0])+abs(y-currentNode[1])
+            if distCurrent<distClosest:
+                distClosest = distCurrent
+                closestCorner = (x,y)
+        h+=distClosest 
+        currentNode = closestCorner
+        nvc.remove(currentNode) 
 
 
-
-    return hn # Default to trivial solution
+    return h # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -486,7 +504,39 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+    wallsList = problem.walls.asList()
+    # print(foodGrid,foodList)
+    
+    h=0
+
+    currentPos = position
+    while(len(foodList)>0):
+        closestFood = foodList[0]
+        distClosest = abs(closestFood[0]-currentPos[0])+abs(closestFood[1]-currentPos[1])
+        for (x,y) in foodList:
+            currentDist = abs(x-currentPos[0])+abs(y-currentPos[1])
+            if currentDist<distClosest:
+                distClosest = currentDist
+                closestFood = (x,y)
+        h += distClosest
+        currentPos = closestFood
+        foodList.remove(currentPos)
+
+   
+
+        
+    foodList = foodGrid.asList()
+    h1 = 0
+    for (x,y) in foodList:
+        h1 += abs(x-position[0]) + abs(y-position[1])
+    
+    w = 0.0315
+
+    h = (h + w*h1)/2
+
+    
+    return h
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -517,6 +567,39 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+
+        wallsList = walls.asList()
+        foodList = food.asList()
+        visited = []
+        q = util.Queue()
+        q.push((startPosition, []))
+        while (not q.isEmpty()):
+            state,path = q.pop()
+            if (problem.isGoalState(state)):
+                return path
+            if (state not in visited):
+                visited.append(state)
+                x,y = state
+                left = (x-1, y)
+                right = (x+1, y)
+                down = (x, y-1)
+                up = (x, y+1)
+                if (left not in wallsList):
+                    currPath = path.copy()
+                    currPath.append(Directions.WEST)
+                    q.push((left,currPath))
+                if (right not in wallsList):
+                    currPath = path.copy()
+                    currPath.append(Directions.EAST)
+                    q.push((right,currPath))
+                if (down not in wallsList):
+                    currPath = path.copy()
+                    currPath.append(Directions.SOUTH)
+                    q.push((down,currPath))
+                if (up not in wallsList):
+                    currPath = path.copy()
+                    currPath.append(Directions.NORTH)
+                    q.push((up,currPath))
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -551,6 +634,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
+
+        return (x,y) in self.food.asList()
 
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
