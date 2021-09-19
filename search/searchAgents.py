@@ -300,7 +300,6 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
         return (self.startingPosition,self.visitedCorners)
 
         util.raiseNotDefined()
@@ -309,7 +308,6 @@ class CornersProblem(search.SearchProblem):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
 
         return len(state[1])==4
             
@@ -329,18 +327,16 @@ class CornersProblem(search.SearchProblem):
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-
-            "*** YOUR CODE HERE ***"
+            
+            
+            # Figuring out whether a new position hits a wall:
+            
 
             (x,y),visitedCorners = state
             dx,dy = Actions.directionToVector(action)
             nextx, nexty = int(x+dx), int(y+dy)
             hitsWall = self.walls[nextx][nexty]
+
 
             if not hitsWall:
                 newVisitedCorners = visitedCorners.copy()
@@ -357,8 +353,8 @@ class CornersProblem(search.SearchProblem):
 
     def getCostOfActions(self, actions):
         """
-        Returns the cost of a particular sequence of actions.  If those actions
-        include an illegal move, return 999999.  This is implemented for you.
+        Returns the cost of a particular sequence of actions. If those actions
+        include an illegal move, return 999999.
         """
         if actions == None: return 999999
         x,y= self.startingPosition
@@ -400,6 +396,12 @@ def cornersHeuristic(state, problem):
         return 0
     
     currentNode = (a,b)
+    """ 
+    We find the next closest corner to the current node and find its manhattan distance.
+
+    Then we iteratively update the position of currentNode to the nextClosest corner location 
+    and sum up all the calculated manhattan distances to get the heuristic value for the node.
+    """
     
     while len(nvc)!=0:
         (x,y) = nvc[0]
@@ -516,6 +518,12 @@ def foodHeuristic(state, problem):
     h=0
 
     currentPos = position
+    """ 
+    We find the next closest food node to the current node and find its manhattan distance.
+
+    Then we iteratively update the position of currentNode to the nextClosest food location 
+    and sum up all the calculated manhattan distances to get the heuristic value for the node.
+    """
     while(len(foodList)>0):
         closestFood = foodList[0]
         distClosest = abs(closestFood[0]-currentPos[0])+abs(closestFood[1]-currentPos[1])
@@ -528,20 +536,7 @@ def foodHeuristic(state, problem):
         currentPos = closestFood
         foodList.remove(currentPos)
 
-   
-
-        
-    foodList = foodGrid.asList()
-    h1 = 0
-    for (x,y) in foodList:
-        h1 += abs(x-position[0]) + abs(y-position[1])
-    
-    w = 0.0315
-
-    h = (h + w*h1)/2
-
-    
-    return h
+    return h/2
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -573,22 +568,42 @@ class ClosestDotSearchAgent(SearchAgent):
 
         "*** YOUR CODE HERE ***"
 
+        # Defining the required values.
         wallsList = walls.asList()
         foodList = food.asList()
         visited = []
         q = util.Queue()
         q.push((startPosition, []))
+
+        """
+        We have implemented BFS to find the path of closest food particle from each state of pacman
+        """
+        
+        
+        # Run till the queue is not empty
+        
         while (not q.isEmpty()):
+            
+            # Pop a node from the queue 
             state,path = q.pop()
+
+            # Check if state is goal state
             if (problem.isGoalState(state)):
                 return path
             if (state not in visited):
+
+                # Mark node as visited
                 visited.append(state)
                 x,y = state
+                
+                # All possible next positions for pacman 
                 left = (x-1, y)
                 right = (x+1, y)
                 down = (x, y-1)
                 up = (x, y+1)
+
+                # For each action, if the new position is not a wall, we push the new position and 
+                # path into the queue.
                 if (left not in wallsList):
                     currPath = path.copy()
                     currPath.append(Directions.WEST)
@@ -638,11 +653,12 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
+
+
         x,y = state
 
         return (x,y) in self.food.asList()
-
-        "*** YOUR CODE HERE ***"
+        
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
