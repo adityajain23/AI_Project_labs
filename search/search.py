@@ -101,15 +101,21 @@ def depthFirstSearch(problem):
     # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
 
+    # Initialise stack 
     s = util.Stack()
     visited = []
     startState = problem.getStartState()
     s.push((startState, []))
     while not s.isEmpty():
+
+        # Get node 
         currState, path = s.pop()
+
+        # Check for goal state 
         if problem.isGoalState(currState):
             return path
         if currState not in visited:
+            # Mark node as visited
             visited.append(currState)
             successors = problem.getSuccessors(currState)
             for neighbour in successors:
@@ -125,13 +131,15 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-
+    # Initialize Queue 
     s = util.Queue()
     visited = []
     startState = problem.getStartState()
     s.push((startState, []))
     while not s.isEmpty():
         currState, path = s.pop()
+
+        #Check for goal state
         if problem.isGoalState(currState):
             return path
         
@@ -152,12 +160,15 @@ def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
 
+    # Initialize Priority Queue 
     pq = util.PriorityQueue()
     visited = []
     startState = problem.getStartState()
     pq.push((startState, [], 0), 0)
     while not pq.isEmpty():
         currState, path, currCost = pq.pop()
+
+        # Check for goal state 
         if problem.isGoalState(currState):
             return path
         if currState not in visited:

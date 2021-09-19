@@ -327,8 +327,6 @@ class CornersProblem(search.SearchProblem):
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
-            
-            
             # Figuring out whether a new position hits a wall:
             
 
@@ -349,6 +347,8 @@ class CornersProblem(search.SearchProblem):
 
 
         self._expanded += 1 # DO NOT CHANGE
+
+        # Return list of all possible successors 
         return successors
 
     def getCostOfActions(self, actions):
@@ -387,11 +387,14 @@ def cornersHeuristic(state, problem):
 
     h = 0
 
+    # Declare a list of not visited corners 
+
     nvc = []
     for i in corners:
         if i not in visitedCorners:
             nvc.append(i)
 
+    # Return 0 is all corners visited. 
     if len(nvc) == 0:
         return 0
     
@@ -404,6 +407,8 @@ def cornersHeuristic(state, problem):
     """
     
     while len(nvc)!=0:
+
+        # Find closest not visited corner 
         (x,y) = nvc[0]
         closestCorner = nvc[0]
         distClosest = abs(x-currentNode[0])+abs(y-currentNode[1])
@@ -412,6 +417,7 @@ def cornersHeuristic(state, problem):
             if distCurrent<distClosest:
                 distClosest = distCurrent
                 closestCorner = (x,y)
+        # Add distance of closest corner 
         h+=distClosest 
         currentNode = closestCorner
         nvc.remove(currentNode) 
@@ -525,6 +531,8 @@ def foodHeuristic(state, problem):
     and sum up all the calculated manhattan distances to get the heuristic value for the node.
     """
     while(len(foodList)>0):
+
+        # Find closest food 
         closestFood = foodList[0]
         distClosest = abs(closestFood[0]-currentPos[0])+abs(closestFood[1]-currentPos[1])
         for (x,y) in foodList:
@@ -532,7 +540,10 @@ def foodHeuristic(state, problem):
             if currentDist<distClosest:
                 distClosest = currentDist
                 closestFood = (x,y)
+        # Add manhattan distance to closest food 
         h += distClosest
+
+        # Update current location to the location of closest food and remove it from list 
         currentPos = closestFood
         foodList.remove(currentPos)
 
