@@ -16,6 +16,7 @@ from util import manhattanDistance
 from game import Directions
 import random
 import util
+import math
 
 from game import Agent
 
@@ -77,7 +78,8 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        newScaredTimes = [
+            ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
         # util.raiseNotDefined()
@@ -94,11 +96,11 @@ class ReflexAgent(Agent):
             foodValue += manhattanDistance(food, newPos)
 
         ghostValue = 0
-        for ghost in newGhostStates:    
+        for ghost in newGhostStates:
             # if (ghost.scaredTimer>2):
             #     ghostValue+=100
-            if (manhattanDistance(newPos, ghost.getPosition())>7):
-                ghostValue+=50
+            if (manhattanDistance(newPos, ghost.getPosition()) > 7):
+                ghostValue += 50
             else:
                 ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
 
@@ -169,13 +171,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        # numAgents = gameState.getNumAgents()
-        # legalActions = gameState.getLegalActions(self.index)
-
-        # getBestAction(gameState,self.depth)
-
-        # return
-
         v = float("-inf")
         bestAction = gameState.getLegalActions(0)[0]
         for action in gameState.getLegalActions(0):
@@ -186,10 +181,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 bestAction = action
 
         return bestAction
-
-        # return bestAction
-
-        # return self.value(gameState,self.index, self.depth)[0]
 
         util.raiseNotDefined()
 
@@ -207,62 +198,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
             else:
                 return min(self.value(state.generateSuccessor(index, action), index+1, depth) for action in legalActions)
 
-    # def value(self,state,index,depth):
-    #     index=index%(state.getNumAgents())
-    #     if(index == 0):
-    #         v = -10000000
-    #         legalActions = state.getLegalActions(index)
-    #         bestAction = legalActions[0]
-    #         for action in legalActions:
-    #             newState = state.generateSuccessor(index, action)
-    #             if depth==0 or newState.isWin() or newState.isLose():
-    #                 newV = self.evaluationFunction(newState)
-    #             else:
-    #                 newV = self.value(newState, index+1,depth)[1]
-    #             if v<=newV:
-    #                 bestAction = action
-    #                 v = newV
-    #     else:
-    #         v = 10000000
-    #         legalActions = state.getLegalActions(index)
-    #         bestAction = legalActions[0]
-    #         for action in legalActions:
-    #             newState = state.generateSuccessor(index, action)
-    #             if depth==0 or newState.isWin() or newState.isLose():
-    #                 newV = self.evaluationFunction(newState)
-    #             else:
-    #                 if index==state.getNumAgents()-1:
-    #                     newV = self.value(newState, index+1,depth-1)[1]
-    #                 else:
-    #                     newV = self.value(newState, index+1,depth)[1]
-
-    #             if v>=newV:
-    #                 bestAction = action
-    #                 v = newV
-
-    #     return (bestAction,v)
-
-    # def value(self, state, agentIndex, depth):
-    #     agentIndex=agentIndex%state.getNumAgents()
-    #     if depth==0 or state.isWin() or state.isLose():
-    #         return self.evaluationFunction(state)
-    #     if (agentIndex==0):
-    #         return self.maxAgent(state, agentIndex,depth)
-    #     if (agentIndex>=1):
-    #         return self.minAgent(state, agentIndex,depth)
-
-    # def minAgent(self, state, agentIndex, depth):
-    #     v=10000000
-    #     for action in state.getLegalActions(agentIndex):
-    #         v=min(v, self.value(state.generateSuccessor(agentIndex, action), agentIndex+1,depth-1))
-    #     return v
-
-    # def maxAgent(self, state, agentIndex, depth):
-    #     v=-10000000
-    #     for action in state.getLegalActions(agentIndex):
-    #         v=max(v, self.value(state.generateSuccessor(agentIndex, action), agentIndex+1, depth-1))
-    #     return v
-
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -275,6 +210,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
+        # numAgents = gameState.getNumAgents()
+        # legalActions = gameState.getLegalActions(self.index)
+
+        # getBestAction(gameState,self.depth)
+
+        # return
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -290,6 +232,32 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        v = float("-inf")
+        bestAction = gameState.getLegalActions(0)[0]
+        for action in gameState.getLegalActions(0):
+            succ = gameState.generateSuccessor(0, action)
+            s = self.value(succ, 1, self.depth)
+            if(v < s or v == float("-inf")):
+                v = s
+                bestAction = action
+
+        return bestAction
+
+        util.raiseNotDefined()
+
+    def value(self, state, index, depth):
+
+        if depth == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+        if index == 0:
+            legalActions = state.getLegalActions(index)
+            return max(self.value(state.generateSuccessor(0, action), 1, depth) for action in legalActions)
+        else:
+            legalActions = state.getLegalActions(index)
+            if index == state.getNumAgents()-1:
+                return sum(self.value(state.generateSuccessor(index, action), 0, depth-1) for action in legalActions)/len(legalActions)
+            else:
+                return sum(self.value(state.generateSuccessor(index, action), index+1, depth) for action in legalActions)/len(legalActions)
         util.raiseNotDefined()
 
 
