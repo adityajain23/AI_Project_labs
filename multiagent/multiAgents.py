@@ -41,7 +41,9 @@ class ReflexAgent(Agent):
         """
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions()
-
+        if "Stop" in legalMoves:
+            legalMoves.remove("Stop")
+        # print(legalMoves)
         # Choose one of the best actions
         scores = [self.evaluationFunction(
             gameState, action) for action in legalMoves]
@@ -75,16 +77,15 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [
-            ghostState.scaredTimer for ghostState in newGhostStates]
+        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
         # print(newPos)
         # print(newFood.asList())
         # for i in range(len(newGhostStates)):
         #     print(newGhostStates[i])
-        # print(newScaredTimes)
+        # print(currentGameState.capsules)
 
         foodValue = 0
         foodRemaining = len(newFood)
@@ -93,10 +94,15 @@ class ReflexAgent(Agent):
             foodValue += manhattanDistance(food, newPos)
 
         ghostValue = 0
-        for ghost in newGhostStates:
-            ghostValue += manhattanDistance(newPos, ghost.getPosition())
+        for ghost in newGhostStates:    
+            # if (ghost.scaredTimer>2):
+            #     ghostValue+=100
+            if (manhattanDistance(newPos, ghost.getPosition())>7):
+                ghostValue+=50
+            else:
+                ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
 
-        value = ghostValue + 50/(foodValue+1) + 200/(foodRemaining+1)
+        value = ghostValue/50 + 8/(foodValue+1) + 3/(foodRemaining+1)
 
         return value
 
