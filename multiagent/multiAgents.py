@@ -209,14 +209,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
-        # numAgents = gameState.getNumAgents()
-        # legalActions = gameState.getLegalActions(self.index)
+        v = float("-inf")
+        alpha = float("-inf")
+        beta = float("inf")
+        bestAction = gameState.getLegalActions(0)[0]
+        for action in gameState.getLegalActions(0):
+            succ = gameState.generateSuccessor(0, action)
+            s = self.value(succ, 1, self.depth-1, alpha, beta)
+            if(v < s):
+                v = s
+                bestAction = action
+        return bestAction
 
-        # getBestAction(gameState,self.depth)
-
-        # return
+    def value(self, state, index, depth, alpha, beta):
+        if(index == 0):
+            v = float("-inf")
+            legalActions = state.getLegalActions(index)
+            # bestAction = legalActions[0]
+            for action in legalActions:
+                newState = state.generateSuccessor(index, action)
+                if depth == 0 or newState.isWin() or newState.isLose():
+                    newV = self.evaluationFunction(newState)
+                else:
+                    newV = self.value(newState, index+1, depth, alpha, beta)
+                if v <= newV:
+                    # bestAction = action
+                    v = newV
+                if (v > beta):
+                    return v
+                alpha = max(alpha, v)
+        else:
+            v = float("inf")
+            legalActions = state.getLegalActions(index)
+            # bestAction = legalActions[0]
+            for action in legalActions:
+                newState = state.generateSuccessor(index, action)
+                if depth == 0 or newState.isWin() or newState.isLose():
+                    newV = self.evaluationFunction(newState)
+                else:
+                    if index == state.getNumAgents()-1:
+                        newV = self.value(newState, 0,
+                                          depth-1, alpha, beta)
+                    else:
+                        newV = self.value(newState, index+1,
+                                          depth, alpha, beta)
+                if v >= newV:
+                    # bestAction = action
+                    v = newV
+                if v < alpha:
+                    return v
+                beta = min(beta, v)
+        return v
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -269,6 +313,30 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood().asList()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [
+        ghostState.scaredTimer for ghostState in newGhostStates]
+
+    foodValue = 0
+    foodRemaining = len(newFood)
+
+    for food in newFood:
+        foodValue += manhattanDistance(food, newPos)
+
+    ghostValue = 0
+    for ghost in newGhostStates:
+        # if (ghost.scaredTimer>2):
+        #     ghostValue+=100
+        if (manhattanDistance(newPos, ghost.getPosition()) > 10):
+            ghostValue += 50
+        else:
+            ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
+
+    value = ghostValue/50 + 8/(foodValue+1) + 3/(foodRemaining+1)
+
+    return value
     util.raiseNotDefined()
 
 
