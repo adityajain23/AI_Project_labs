@@ -217,10 +217,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         bestAction = gameState.getLegalActions(0)[0]
         for action in gameState.getLegalActions(0):
             succ = gameState.generateSuccessor(0, action)
-            s = self.value(succ, 1, self.depth, alpha, beta)
-            if(v < s or v == float("-inf")):
-                v = s
+            newV = self.value(succ, 1, self.depth, alpha, beta)
+            if(v < newV or v == float("-inf")):
+                v = newV
                 bestAction = action
+            alpha = max(v, alpha)
+            if beta < alpha:
+                break
 
         return bestAction
 
@@ -228,34 +231,30 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if depth == 0 or state.isWin() or state.isLose():
             return self.evaluationFunction(state)
         elif index == 0:
-            return self.max_value(state, index, depth, alpha, beta)
+            v = float("-inf")
+            for action in state.getLegalActions(index):
+                v = max(v, self.value(state.generateSuccessor(
+                    index, action), 1, depth, alpha, beta))
+
+                alpha = max(v, alpha)
+                if beta < alpha:
+                    return v
+
+            return v
+            # return self.max_value(state, index, depth, alpha, beta)
         else:
-            return self.min_value(state, index, depth, alpha, beta)
-
-    def max_value(self, state, index, depth, alpha, beta):
-        v = float("-inf")
-        for action in state.getLegalActions(index):
-            v = max(v, self.value(state.generateSuccessor(
-                index, action), 1, depth, alpha, beta))
-            if v > beta:
-                return v
-            alpha = max(v, alpha)
-
-        return v
-
-    def min_value(self, state, index, depth, alpha, beta):
-        v = float("inf")
-        for action in state.getLegalActions(index):
-            if index == state.getNumAgents()-1:
-                v = min(v, self.value(state.generateSuccessor(
-                    index, action), 0, depth-1, alpha, beta))
-            else:
-                v = min(v, self.value(state.generateSuccessor(
-                    index, action), index+1, depth, alpha, beta))
-            if v < alpha:
-                return v
-            beta = min(beta, v)
-        return v
+            v = float("inf")
+            for action in state.getLegalActions(index):
+                if index == state.getNumAgents()-1:
+                    v = min(v, self.value(state.generateSuccessor(
+                        index, action), 0, depth-1, alpha, beta))
+                else:
+                    v = min(v, self.value(state.generateSuccessor(
+                        index, action), index+1, depth, alpha, beta))
+                beta = min(beta, v)
+                if beta < alpha:
+                    return v
+            return v
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -308,6 +307,30 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood().asList()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [
+        ghostState.scaredTimer for ghostState in newGhostStates]
+
+    foodValue = 0
+    foodRemaining = len(newFood)
+
+    for food in newFood:
+        foodValue += manhattanDistance(food, newPos)
+
+    ghostValue = 0
+    for ghost in newGhostStates:
+        # if (ghost.scaredTimer>2):
+        #     ghostValue+=100
+        if (manhattanDistance(newPos, ghost.getPosition()) > 10):
+            ghostValue += 50
+        else:
+            ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
+
+    value = ghostValue/60 + 8/(foodValue+1) + 3/(foodRemaining+1)
+
+    return value
     util.raiseNotDefined()
 
 
