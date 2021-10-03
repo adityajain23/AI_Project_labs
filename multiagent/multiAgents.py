@@ -1,3 +1,9 @@
+# Group 8
+# Team Members:
+# Aditya Jain : 1903102
+# Adwait Agashe: 1903103
+# Gunjan Mayekar: 1903117
+
 # multiAgents.py
 # --------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -82,28 +88,33 @@ class ReflexAgent(Agent):
             ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
-        # print(newPos)
-        # print(newFood.asList())
-        # for i in range(len(newGhostStates)):
-        #     print(newGhostStates[i])
-        # print(currentGameState.capsules)
 
+        # Here we have used distance from ghost, distance from food, total food particles remaining
+        # as features to evaluate our evaluation function.
+
+        # Initialize values to use in evaluating value.
         foodValue = 0
+        ghostValue = 0
+
+        # Get the number of food particles remaining.
         foodRemaining = len(newFood)
 
+        # Get sum of manhattan distances of all the food particles.
         for food in newFood:
             foodValue += manhattanDistance(food, newPos)
 
-        ghostValue = 0
+        # Loop for all new states of the ghosts
         for ghost in newGhostStates:
-            # if (ghost.scaredTimer>2):
-            #     ghostValue+=100
+
+            # If ghost is at a manhattan distance more than 7, then we give less priority to get away
+            # from the ghosts
             if (manhattanDistance(newPos, ghost.getPosition()) > 7):
                 ghostValue += 50
+            # If the ghost is closer, then we prioritize running away from the ghosts.
             else:
                 ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
 
+        # The return value will be a function of all the calculated values.
         value = ghostValue/50 + 8/(foodValue+1) + 3/(foodRemaining+1)
 
         return value
@@ -171,30 +182,43 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
+        # Initializing best value and best action.
         v = float("-inf")
         bestAction = gameState.getLegalActions(0)[0]
+        # Loop over all the possible actions from the root state.
         for action in gameState.getLegalActions(0):
+            # Get the successor state from current state and action.
             succ = gameState.generateSuccessor(0, action)
+            # Get value of current state.
             s = self.value(succ, 1, self.depth)
+            # Update the best action and best value.
             if(v < s or v == float("-inf")):
                 v = s
                 bestAction = action
-
+        # return the best action.
         return bestAction
 
-        util.raiseNotDefined()
-
     def value(self, state, index, depth):
-
+        # If we reach at the max depth or we reach a terminal state,
+        # then we return the utility of that state.
         if depth == 0 or state.isWin() or state.isLose():
             return self.evaluationFunction(state)
+        # If the current agent is the max agent then we return the maximum
+        # possible value of all the successor states which can be reached from the
+        # current state taking all possible legal actions.
         if index == 0:
             legalActions = state.getLegalActions(index)
             return max(self.value(state.generateSuccessor(0, action), 1, depth) for action in legalActions)
+        # If the current agent is the min agent then we return the minimum possible value
+        # of all the successor states which can be reached from the current state taking
+        # all possible legal actions.
         else:
             legalActions = state.getLegalActions(index)
+
+            # If the min agent is the last ghost, then we reduce the depth by 1 and update next index to 0
             if index == state.getNumAgents()-1:
                 return min(self.value(state.generateSuccessor(index, action), 0, depth-1) for action in legalActions)
+            # If the min agent is not the last ghost, then we keep constant depth and increase index by 1.
             else:
                 return min(self.value(state.generateSuccessor(index, action), index+1, depth) for action in legalActions)
 
@@ -209,49 +233,73 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
 
+        # Initializing best value, alpha, beta and best action.
         v = float("-inf")
         alpha = float("-inf")
         beta = float("inf")
         bestAction = gameState.getLegalActions(0)[0]
+
+        # Loop over all possible legal actions from the root state.
         for action in gameState.getLegalActions(0):
+
+            # Get the successor state using current state and action.
             succ = gameState.generateSuccessor(0, action)
+
+            # Get the value of the new state
             newV = self.value(succ, 1, self.depth, alpha, beta)
+            # update best value and best action.
             if(v < newV or v == float("-inf")):
                 v = newV
                 bestAction = action
+            # Update the value of alpha
             alpha = max(v, alpha)
+
+            # Apply alpha beta pruning if condition is met
             if beta < alpha:
                 break
 
+        # return best action.
         return bestAction
 
     def value(self, state, index, depth, alpha, beta):
+        # If we reach at the max depth or we reach a terminal state,
+        # then we return the utility of that state.
         if depth == 0 or state.isWin() or state.isLose():
             return self.evaluationFunction(state)
+        # If the current agent is the max agent then we return the maximum
+        # possible value of all the successor states which can be reached from the
+        # current state taking all possible legal actions.
         elif index == 0:
             v = float("-inf")
             for action in state.getLegalActions(index):
                 v = max(v, self.value(state.generateSuccessor(
                     index, action), 1, depth, alpha, beta))
 
+                # Update value of alpha.
                 alpha = max(v, alpha)
+                # Apply alpha beta pruning if condition is met.
                 if beta < alpha:
                     return v
-
             return v
-            # return self.max_value(state, index, depth, alpha, beta)
+        # If the current agent is the min agent then we return the minimum possible value
+        # of all the successor states which can be reached from the current state taking
+        # all possible legal actions.
         else:
             v = float("inf")
             for action in state.getLegalActions(index):
+                # If the min agent is the last ghost, then we reduce the depth by 1 and update next index to 0
                 if index == state.getNumAgents()-1:
                     v = min(v, self.value(state.generateSuccessor(
                         index, action), 0, depth-1, alpha, beta))
+
+                # If the min agent is not the last ghost, then we keep constant depth and increase index by 1.
                 else:
                     v = min(v, self.value(state.generateSuccessor(
                         index, action), index+1, depth, alpha, beta))
+                # Update value of beta.
                 beta = min(beta, v)
+                # Apply alpha beta pruning if condition is met.
                 if beta < alpha:
                     return v
             return v
@@ -270,33 +318,47 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+
+        # Initializing best value and best action.
         v = float("-inf")
         bestAction = gameState.getLegalActions(0)[0]
+        # Loop over all the possible actions from the root state..
         for action in gameState.getLegalActions(0):
+            # Get the successor state using current state and action.
             succ = gameState.generateSuccessor(0, action)
+            # Get value of current state.
             s = self.value(succ, 1, self.depth)
+            # Update the best action and best value.
             if(v < s or v == float("-inf")):
                 v = s
                 bestAction = action
 
+        # return the best action.
         return bestAction
-
-        util.raiseNotDefined()
 
     def value(self, state, index, depth):
 
+        # If we reach at the max depth or we reach a terminal state,
+        # then we return the utility of that state.
         if depth == 0 or state.isWin() or state.isLose():
             return self.evaluationFunction(state)
+        # If the current agent is the max agent then we return the maximum
+        # possible value of all the successor states which can be reached from the
+        # current state taking all possible legal actions.
         if index == 0:
             legalActions = state.getLegalActions(index)
             return max(self.value(state.generateSuccessor(0, action), 1, depth) for action in legalActions)
+        # If the current agent is the min agent then we return the average over all possible value
+        # of the successor states which can be reached from the current state taking
+        # all possible legal actions.
         else:
             legalActions = state.getLegalActions(index)
+            # If the min agent is the last ghost, then we reduce the depth by 1 and update next index to 0
             if index == state.getNumAgents()-1:
                 return sum(self.value(state.generateSuccessor(index, action), 0, depth-1) for action in legalActions)/len(legalActions)
+            # If the min agent is not the last ghost, then we keep constant depth and increase index by 1.
             else:
                 return sum(self.value(state.generateSuccessor(index, action), index+1, depth) for action in legalActions)/len(legalActions)
-        util.raiseNotDefined()
 
 
 def betterEvaluationFunction(currentGameState):
@@ -313,25 +375,35 @@ def betterEvaluationFunction(currentGameState):
     newScaredTimes = [
         ghostState.scaredTimer for ghostState in newGhostStates]
 
+    # Here we have used distance from ghost, distance from food, total food particles remaining
+    # as features to evaluate our evaluation function.
+
+    # Initialize values to use in evaluating value.
     foodValue = 0
+    ghostValue = 0
+
+    # Get the number of food particles remaining.
     foodRemaining = len(newFood)
 
+    # Get sum of manhattan distances of all the food particles.
     for food in newFood:
         foodValue += manhattanDistance(food, newPos)
 
-    ghostValue = 0
+    # Loop for all new states of the ghosts
     for ghost in newGhostStates:
-        # if (ghost.scaredTimer>2):
-        #     ghostValue+=100
+
+        # If ghost is at a manhattan distance more than 7, then we give less priority to get away
+        # from the ghosts
         if (manhattanDistance(newPos, ghost.getPosition()) > 10):
             ghostValue += 50
+        # If the ghost is closer, then we prioritize running away from the ghosts.
         else:
             ghostValue += 6*manhattanDistance(newPos, ghost.getPosition())
 
+    # The return value will be a function of all the calculated values.
     value = ghostValue/60 + 8/(foodValue+1) + 3/(foodRemaining+1)
 
     return value
-    util.raiseNotDefined()
 
 
 # Abbreviation
