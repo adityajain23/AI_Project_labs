@@ -26,7 +26,9 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from typing import Counter
 import mdp
+from util import PriorityQueue
 import util
 
 from learningAgents import ValueEstimationAgent
@@ -215,3 +217,44 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        pq = util.PriorityQueue()
+
+        predecessors = {}
+        allStates = self.mdp.getStates()
+        for state in allStates:
+            if not self.mdp.isTerminal(state):
+                actions = self.mdp.getPossibleActions(state)
+                for action in actions:
+                    trans = self.mdp.getTransitionStatesAndProbs(state, action)
+                    for arrow in trans:
+                        newState, prob = arrow
+                        if newState not in predecessors:
+                            predecessors[newState] = []
+                        predecessors[newState].append(state)
+
+        pq = PriorityQueue()
+        allStates = self.mdp.getStates()
+
+        for state in allStates:
+            if not self.mdp.isTerminal(state):
+                maxQ = max([self.getQValue(state, action)
+                           for action in self.mdp.getPossibleActions(state)])
+                diff = abs(maxQ - self.getValue(state))
+                pq.update(state, -diff)
+
+        for iteration in range(self.iterations):
+            if pq.isEmpty():
+                break
+            state = pq.pop()
+            if not self.mdp.isTerminal(state):
+                self.values[state] = max([self.computeQValueFromValues(state, action)
+                                          for action in self.mdp.getPossibleActions(state)])
+
+            preS = predecessors[state]
+            for pre in preS:
+                if not self.mdp.isTerminal(pre):
+                    maxQ = max([self.computeQValueFromValues(pre, action)
+                                for action in self.mdp.getPossibleActions(pre)])
+                    diff = abs(maxQ - self.getValue(pre))
+                    if diff > self.theta:
+                        pq.update(pre, -diff)
